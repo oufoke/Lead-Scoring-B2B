@@ -1,77 +1,99 @@
-# 🚀 B2B Predictive Lead Scoring | Moteur de Scoring Commercial par l'IA 🟢 Live App
+# Lead Scoring — Savoir quels prospects appeler en premier
 
-> *🇺🇸 An Explainable AI (XAI) scoring engine designed to prioritize B2B sales leads and reduce CAC.*
-> *🇫🇷 Un moteur de scoring prédictif basé sur l'IA explicable (SHAP) pour prioriser les prospects commerciaux.*
+> 🇫🇷 Un moteur de scoring qui priorise les prospects et explique chaque score. Entraîné sur données synthétiques.
+> 🇬🇧 A lead scoring engine that prioritises prospects and explains every score. Trained on synthetic data.
 
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://lead-scoring-portofolio-ofk.streamlit.app/)
-![Python](https://img.shields.io/badge/Python-3.9-blue)
-![XGBoost](https://img.shields.io/badge/Model-XGBoost-orange)
-
-![Demo de l'application](screens1.png)
-![Demo de l'application](screens2.png)
-
-## 📋 Contexte & Problème Business
-Les équipes commerciales B2B perdent jusqu'à **40% de leur temps** à traiter des prospects froids ou mal qualifiés. Le pilotage "au feeling" entraîne une perte d'efficacité et un coût d'acquisition client (CAC) élevé.
-
-**La Solution :** Une application de **Scoring Prédictif** qui permet de :
-1.  **Prioriser** les leads ayant la plus forte probabilité de signature.
-2.  **Expliquer** les raisons du score grâce à l'IA explicable (XAI).
-3.  **Guider** l'action commerciale (Appel immédiat vs Nurturing).
-
-👉 **[Testez l'application en live ici](https://lead-scoring-portofolio-ofk.streamlit.app/)**
+**[Lancer la démo](https://lead-scoring-portofolio-ofk.streamlit.app/)**
 
 ---
 
-## 🧠 Fonctionnalités Clés (Product Features)
+## Le problème
 
-### 1. Scoring en Temps Réel
-Calcul instantané d'un score de conversion (0-100%) basé sur les données firmographiques (Taille, Secteur) et comportementales (Engagement web, Emails).
+Une équipe commerciale qui traite tous ses prospects à égalité dilue son effort. Le coût d'acquisition monte, et les affaires les plus probables reçoivent la même attention que les moins probables.
 
-### 2. IA Explicable ("White Box")
-Contrairement aux algorithmes "boîte noire", cet outil utilise **SHAP (SHapley Additive exPlanations)** pour détailler l'impact de chaque critère.
-* *Exemple :* "+15 points car le contact est un Directeur", "-5 points car aucune activité depuis 30 jours".
-
-### 3. Interface d'Aide à la Décision
-Un code couleur simple (Vert/Orange/Rouge) et des recommandations d'actions pour faciliter l'adoption par les équipes de vente.
+Un score de conversion permet de trier. Mais un score seul ne fait pas agir : un commercial n'appelle pas parce qu'on lui affiche 0,82. Il appelle quand il sait **pourquoi**.
 
 ---
 
-## 🛠️ Stack Technique
+## Ce que fait le système
 
-* **Langage :** Python 3.10
-* **Machine Learning :** XGBoost (Gradient Boosting) pour la performance sur données tabulaires.
-* **Interprétabilité :** SHAP (Game Theoretic approach).
-* **Frontend :** Streamlit (Déploiement rapide d'app Data).
-* **Data Processing :** Pandas, NumPy.
+Un score de probabilité de conversion par prospect, accompagné de la contribution de chaque variable à ce score — positive ou négative, chiffrée.
 
----
+### Le mécanisme
 
-## 📊 Performance du Modèle
-Le modèle a été entraîné sur un dataset synthétique simulant un pipeline de vente SaaS B2B (2000 prospects).
+Le modèle construit des arbres de décision en série. Chaque nouvel arbre ne prédit pas la cible : il prédit l'erreur laissée par les arbres précédents. En additionnant, on corrige progressivement. C'est ce qui rend la méthode performante sur des données en tableau, là où un réseau de neurones n'apporte rien.
 
-* **Accuracy (Précision globale) :** 89%
-* **Precision (Classe "Signé") :** 79% (Minimise les faux positifs pour ne pas faire perdre de temps aux vendeurs).
+L'explication repose sur une idée de théorie des jeux : on mesure ce que chaque variable apporte à la prédiction en comparant les résultats obtenus avec et sans elle. Chaque variable reçoit une part attribuée, qui explique l'écart entre la prédiction et la moyenne.
 
 ---
 
-## 💻 Installation Locale
+## Stack
 
-Si vous souhaitez faire tourner le projet sur votre machine :
+* **Langage** — Python
+* **Modèle** — XGBoost
+* **Explication** — SHAP
+* **Traitement** — Pandas, NumPy
+* **Interface** — Streamlit
 
-```bash
-# 1. Cloner le repository
-git clone [https://github.com/VOTRE_NOM/lead-scoring-portfolio.git](https://github.com/VOTRE_NOM/lead-scoring-portfolio.git)
-cd lead-scoring-portfolio
+---
 
-# 2. Installer les dépendances
-pip install -r requirements.txt
+## Décisions & arbitrages
 
-# 3. Lancer l'application
-streamlit run app.py
-```
-## 👤 Auteur
+*Section rétrospective.*
 
-**Oumar** - *Data Product Manager*
-> J'aide les décideurs à transformer leurs données en outils de pilotage stratégique.
+### Arbres boostés plutôt qu'un réseau de neurones
 
-[LinkedIn](https://www.linkedin.com/in/oumarfodek/)
+**Contexte.** Données tabulaires, volume modeste, besoin d'explication.
+**Décision.** XGBoost.
+**Pourquoi.** Sur ce type de données, les méthodes d'arbres boostés restent au niveau des meilleures approches pour une fraction du coût et du temps de mise au point. Un réseau de neurones aurait ajouté de l'opacité sans gain.
+
+### L'explication comme fonctionnalité produit, pas comme option
+
+**Contexte.** Le destinataire est un commercial, pas un data scientist.
+**Décision.** L'attribution par variable est affichée systématiquement, pas cachée derrière un onglet expert.
+**Pourquoi.** C'est ce qui transforme un score en action. Sans l'explication, l'outil n'est pas adopté — le score reste un chiffre qu'on ignore.
+
+### Données synthétiques
+
+**Contexte.** Pas d'accès à un pipeline commercial réel.
+**Décision.** Générer un jeu de données simulant un cycle de vente B2B.
+**Ce que ça coûte.** C'est la limite principale du projet, détaillée plus bas. Le projet démontre une chaîne de bout en bout, pas une capacité de prédiction.
+
+---
+
+## Limites connues
+
+### La limite principale : les données sont synthétiques
+
+Les métriques de ce dépôt ne mesurent pas une capacité de prédiction sur le monde réel. Elles mesurent la capacité du modèle à **retrouver la structure que le générateur de données a lui-même écrite**. Le raisonnement est circulaire et le chiffre n'est pas transposable.
+
+Ce que le projet démontre : la chaîne complète — préparation, entraînement, explication, déploiement.
+Ce qu'il ne démontre pas : une performance prédictive.
+
+### Le taux de bonnes réponses est une métrique trompeuse ici
+
+Sur un problème où la classe positive est rare, un modèle qui prédit « non » partout affiche un excellent score global. Les métriques pertinentes seraient la précision sur les premiers prospects classés et le gain par rapport à un tri aléatoire.
+
+### Les pièges d'une mise en production réelle
+
+* **Fuite de données.** Si une variable n'existe qu'après la signature, le modèle la lit et affiche une performance parfaite qui ne vaut rien en production. Un score trop beau en validation est presque toujours le signe qu'on a laissé passer le futur.
+* **Scores non calibrés.** 0,8 ne signifie pas 80 % de chances de signer. Sans calibration, impossible de raisonner en espérance de revenu.
+* **Boucle de rétroaction.** Si les commerciaux ne traitent que les prospects bien notés, seuls ceux-là produisent un résultat observable. Le modèle réentraîné se confirme lui-même et enterre les segments qu'il avait sous-évalués.
+* **Dérive.** Un changement de marché ou de canal d'acquisition rend le modèle obsolète sans qu'aucune alerte ne se déclenche.
+
+---
+
+## Ce qui n'a pas été mesuré
+
+Performance sur données réelles, calibration des scores, stabilité dans le temps — et la seule chose qui compte vraiment : est-ce que les commerciaux qui suivent le score signent plus que ceux qui l'ignorent ?
+
+---
+
+## Difficultés rencontrées
+
+* **Éviter que le générateur de données ne rende le problème trop facile.** Un jeu synthétique mal conçu produit un modèle parfait et inutile. Calibrer le bruit et les corrélations pour que l'exercice reste réaliste a demandé plusieurs itérations.
+
+
+---
+
+*Oumar Fodé KEBE — [oufoke.github.io](https://oufoke.github.io) · [LinkedIn](https://www.linkedin.com/in/oumarfodek/)*
